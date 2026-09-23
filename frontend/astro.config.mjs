@@ -11,6 +11,9 @@ export default defineConfig({
 	// query strings entirely.
 	output: 'server',
 	adapter: node({ mode: 'standalone' }),
+	server: {
+		host: true,
+	},
 	vite: {
 		plugins: [tailwindcss()],
 	},
