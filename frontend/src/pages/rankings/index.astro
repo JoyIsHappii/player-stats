@@ -10,7 +10,7 @@ const sortOptions = [
   { label: "Rating", value: "avg_rating" },
 ];
 
-const API_URL = "http://localhost:3000";
+const API_URL = import.meta.env.PUBLIC_API_URL || "http://localhost:3000";
 
 const sortBy = Astro.url.searchParams.get("sortBy") || "total_goals";
 

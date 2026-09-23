@@ -5,7 +5,7 @@ import InputNumber from "../../components/InputNumber.astro";
 import InputField from "../../components/InputField.astro";
 import Avatar from "../../components/Avatar.astro";
 
-const API_URL = "http://localhost:3000";
+const API_URL = import.meta.env.PUBLIC_API_URL || "http://localhost:3000";
 
 const matchId = Astro.url.searchParams.get("match_id") || "";
 
@@ -253,7 +253,7 @@ const formattedDate = match?.match_date
 </Layout>
 
 <script>
-  const API_URL = "http://localhost:3000";
+  const API_URL = import.meta.env.PUBLIC_API_URL || "http://localhost:3000";
   
   const playerIdInput = document.getElementById("player_id") as HTMLInputElement | null;
   const formPlayerIdInput = document.getElementById("form_player_id") as HTMLInputElement | null;

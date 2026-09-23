@@ -4,7 +4,7 @@ import Button from "../../components/Button.astro";
 import InputNumber from "../../components/InputNumber.astro";
 import InputField from "../../components/InputField.astro";
 
-const API_URL = "http://localhost:3000";
+const API_URL = import.meta.env.PUBLIC_API_URL || "http://localhost:3000";
 
 
 let errorMessage = "";

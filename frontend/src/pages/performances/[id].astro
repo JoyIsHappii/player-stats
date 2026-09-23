@@ -84,7 +84,7 @@ type PerformanceRow = {
   clutch_performance_score: number;
 };
 
-const API_URL = "http://localhost:3000";
+const API_URL = import.meta.env.PUBLIC_API_URL || "http://localhost:3000";
 const player_id: string | undefined = Astro.params.id;
 let performance: PerformanceRow | null;
 try {

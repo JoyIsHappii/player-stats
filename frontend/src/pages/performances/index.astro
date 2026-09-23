@@ -28,7 +28,7 @@ type PerformanceRow = {
 
 
 
-const API_URL = "http://localhost:3000";
+const API_URL = import.meta.env.PUBLIC_API_URL || "http://localhost:3000";
 
 const page = parseInt(Astro.url.searchParams.get("page") || "1", 10);
 const limit = parseInt(Astro.url.searchParams.get("limit") || "10", 10);

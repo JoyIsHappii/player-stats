@@ -7,7 +7,7 @@ import SearchField from "../../components/SearchField.astro";
 import Pagination from "../../components/Pagination.astro";
 import Avatar from "../../components/Avatar.astro";
 
-const API_URL = "http://localhost:3000";
+const API_URL = import.meta.env.PUBLIC_API_URL || "http://localhost:3000";
 
 const matchId = Astro.params.id;
 
@@ -252,7 +252,7 @@ type MatchPlayerRow = {
 <!-- define:vars injects frontmatter values into the client script —
      plain {matchId} inside <script> is NOT interpolated by Astro -->
 <script define:vars={{ matchId, teamA: match.team_a, teamB: match.team_b }}>
-  const API_URL = "http://localhost:3000";
+  const API_URL = import.meta.env.PUBLIC_API_URL || "http://localhost:3000";
 
   const deleteBtn = document.querySelector("#deleteMatch");
   const saveBtn = document.querySelector("#saveMatch");
