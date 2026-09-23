@@ -3,6 +3,8 @@ interface Props {
   active?: "matches" | "performances" | "rankings";
 }
 
+import logo from "../assets/logo.webp";
+
 const { active } = Astro.props as Props;
 
 const links = [
@@ -24,21 +26,67 @@ const links = [
 ];
 ---
 
-<aside class="w-40 bg-primary-60 p-6 shadow-2xl">
-  <div class="mb-10 flex items-center justify-center">
+<aside
+  class="flex w-full flex-col bg-primary-60 px-5 py-6 shadow-xl
+         md:sticky md:top-0 md:h-screen md:w-64 md:px-6"
+>
+  <!-- Logo -->
+  <div class="mb-10 flex flex-col items-center">
+    <div
+      class="flex h-32 w-32 items-center justify-center rounded-3xl"
+    >
+      <img
+        src={logo.src}
+        alt="Player Stats Logo"
+        class="h-full w-full object-contain"
+      />
+    </div>
   </div>
+
+  <!-- Navigation -->
   <nav class="flex flex-col gap-2">
-    {links.map((link) => (
-      <a
-        href={link.href}
-        class={`rounded-lg px-4 py-2 text-sm font-normal opacity-80 ${
-          link.id === active
-            ? "text-w-100 font-semibold opacity-100"
-            : "text-w-100 hover:opacity-100 transition-opacity duration-200"
-        }`}
-      >
-        {link.name}
-      </a>
-    ))}
+    {
+      links.map((link) => (
+        <a
+          href={link.href}
+          class:list={[
+            "group flex items-center rounded-xl px-4 py-3 text-md transition-all duration-200",
+            link.id === active
+              ? "bg-primary text-w-100 font-semibold"
+              : "text-w-100/75 hover:bg-primary/70 hover:text-w-100",
+          ]}
+        >
+          <span
+            class:list={[
+              "mr-3 h-1.5 w-1.5 rounded-full transition-all duration-200",
+              link.id === active
+                ? "bg-w-100"
+                : "bg-transparent group-hover:bg-w-100/50",
+            ]}
+          ></span>
+
+          {link.name}
+        </a>
+      ))
+    }
   </nav>
+
+  <!-- Bottom Information -->
+  <div class="mt-auto pt-10">
+    <div
+      class="border-t border-w-100/50 pt-6"
+    >
+      <p class="mb-1 text-xs font-medium uppercase tracking-[0.2em] text-w-100/60">
+        Tournament
+      </p>
+
+      <p class="text-xl font-semibold tracking-tight text-w-100">
+        World Cup 2026
+      </p>
+
+      <p class="mt-1 text-sm leading-relaxed text-w-100/65">
+        Player Performance Explorer
+      </p>
+    </div>
+  </div>
 </aside>
