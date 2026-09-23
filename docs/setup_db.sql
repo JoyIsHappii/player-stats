@@ -58,7 +58,8 @@ CREATE TABLE players (
 
 CREATE TABLE matches (
   match_id   TEXT PRIMARY KEY,
-  match_date DATE, stadium TEXT, city TEXT, tournament_stage TEXT
+  match_date DATE, stadium TEXT, city TEXT, tournament_stage TEXT,
+  team_a TEXT, team_b TEXT, goals_a INT, goals_b INT
 );
 
 CREATE TABLE performances (
@@ -94,7 +95,8 @@ FROM raw_staging ORDER BY player_id;
 
 INSERT INTO matches
 SELECT DISTINCT ON (match_id)
-  match_id, match_date, stadium, city, tournament_stage
+  match_id, match_date, stadium, city, tournament_stage,
+  team, opponent_team, goals_team, goals_opponent
 FROM raw_staging ORDER BY match_id;
 
 INSERT INTO performances (
