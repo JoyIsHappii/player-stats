@@ -1,0 +1,43 @@
+---
+export interface Props {
+  variant?: "integer" | "decimal";
+  id?: string;
+  label?: string;
+  value?: number;
+  min?: number;
+  max?: number;
+  disabled?: boolean;
+}
+
+const {
+  variant = "integer",
+  id,
+  label,
+  value,
+  min,
+  max,
+  disabled = false
+} = Astro.props;
+
+const step = variant === "decimal" ? 0.1 : 1;
+---
+
+<div class="flex flex-col gap-1">
+  {label && (
+    <label for={id} class="text-sm text-text-gray">
+      {label}
+    </label>
+  )}
+
+  <input
+    type="number"
+    id={id}
+    name={id}
+    value={value}
+    min={min}
+    max={max}
+    step={step}
+    disabled={disabled}
+    class="rounded-lg border border-text-gray-50 px-3 py-2 text-text-black h-10 w-full disabled:bg-primary-10 disabled:text-text-gray"
+  />
+</div>

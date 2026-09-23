@@ -1,0 +1,44 @@
+---
+interface Props {
+  active?: "matches" | "performances" | "rankings";
+}
+
+const { active } = Astro.props as Props;
+
+const links = [
+  {
+    id: "matches",
+    name: "Matches",
+    href: "/",
+  },
+  {
+    id: "performances",
+    name: "Performances",
+    href: "/performances",
+  },
+  {
+    id: "rankings",
+    name: "Rankings",
+    href: "/rankings",
+  },
+];
+---
+
+<aside class="w-40 bg-primary-60 p-6 shadow-2xl">
+  <div class="mb-10 flex items-center justify-center">
+  </div>
+  <nav class="flex flex-col gap-2">
+    {links.map((link) => (
+      <a
+        href={link.href}
+        class={`rounded-lg px-4 py-2 text-sm font-normal opacity-80 ${
+          link.id === active
+            ? "text-w-100 font-semibold opacity-100"
+            : "text-w-100 hover:opacity-100 transition-opacity duration-200"
+        }`}
+      >
+        {link.name}
+      </a>
+    ))}
+  </nav>
+</aside>

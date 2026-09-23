@@ -1,0 +1,255 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import SearchField from "../../components/SearchField.astro";
+import Button from "../../components/Button.astro";
+import Avatar from "../../components/Avatar.astro";
+import Pagination from "../../components/Pagination.astro";
+import UpDownIcon from "../../assets/icons/up-down-fill.svg";
+import Filter from "../../components/Filter.astro";
+
+type PerformanceRow = {
+  id: number;
+  player_name: string;
+  team: string;
+  opponent_team: string;
+  match_date: string;
+  position: string;
+  minutes_played: number;
+  goals: number;
+  assists: number;
+  shots: number;
+  pass_accuracy: number;
+  player_rating: number;
+  jersey_number: number;
+  goals_team: number;
+  goals_opponent: number;
+};
+
+
+
+
+const API_URL = "http://localhost:3000";
+
+const page = parseInt(Astro.url.searchParams.get("page") || "1", 10);
+const limit = parseInt(Astro.url.searchParams.get("limit") || "10", 10);
+const search = Astro.url.searchParams.get("search") || "";
+const sortBy = Astro.url.searchParams.get("sortBy") || "id";
+const sortOrder = Astro.url.searchParams.get("sortOrder") || "asc";
+
+
+const sortLink = (column: string) => {
+  const newSortOrder =
+    sortBy === column && sortOrder === "asc" ? "desc" : "asc";
+  // this page lives at /performances — the link must point back to it
+  return `/performances?page=1&limit=${limit}&search=${encodeURIComponent(search)}&sortBy=${column}&sortOrder=${newSortOrder}`;
+};
+
+let performances: PerformanceRow[] = [];
+let totalPages = 1;
+let totalCount = 0;
+
+try {
+  const apiUrl = `${API_URL}/performances?page=${page}&limit=${limit}&search=${encodeURIComponent(search)}&sortBy=${sortBy}&sortOrder=${sortOrder}`;
+
+  const response = await fetch(apiUrl);
+
+  if (response.ok) {
+    const data = await response.json();
+    performances = data.performances ?? [];
+    totalCount = data.total ?? 0;
+    totalPages = Math.max(1, Math.ceil(totalCount / limit));
+  }
+} catch {
+  performances = [];
+  totalPages = 1;
+  totalCount = 0;
+}
+
+// Match date formatting
+performances = performances.map((performance) => {
+
+
+  const matchDate = new Date(performance.match_date);
+  const formattedDate = matchDate.toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "short",
+    day: "2-digit",
+  });
+  return { ...performance, match_date: formattedDate };
+
+});
+
+
+//Position formatting
+const positionMap: Record<string, string> = {
+  "GK": "Goalkeeper",
+  "DF": "Defender",
+  "MF": "Midfielder",
+  "FW": "Forward",
+};
+
+positionMap["Goalkeeper"] = "GK";
+positionMap["Defender"] = "DF";
+positionMap["Midfielder"] = "MF";
+positionMap["Forward"] = "FW";
+
+
+
+---
+
+<Layout title="Performances" active="performances" container="w-full p-8">
+  <!-- HEADING -->
+  <div class="flex flex-row items-center gap-4">
+    <h1 class="text-2xl font-bold">Performances</h1>
+    <SearchField />
+  </div>
+
+  <!-- Pagination -->
+  <Pagination
+    page={page}
+    totalPages={totalPages}
+    limit={limit}
+    search={search}
+    sortBy={sortBy}
+    sortOrder={sortOrder}
+  />
+
+  <!-- TABLE -->
+  <table class="w-full border-collapse border border-gray-300 mt-4">
+    <thead>
+      <tr class="bg-gray-100">
+        <th class="border border-gray-300 px-4 py-2 text-xs">
+          <a
+            href={sortLink("player_name")}
+            class="flex items-center flex-row gap-1"
+          >
+            Player Name <UpDownIcon class="w-3 h-3" />
+          </a>
+        </th>
+        <th class="border border-gray-300 px-4 py-2 text-xs">
+          <a href={sortLink("team")} class="flex items-center flex-row gap-1"
+            >Team <UpDownIcon class="w-3 h-3" /></a
+          >
+        </th>
+        <th class="border border-gray-300 px-4 py-2 text-xs">
+          <a
+            href={sortLink("opponent_team")}
+            class="flex items-center flex-row gap-1"
+          >
+            Opponent <UpDownIcon class="w-3 h-3" />
+          </a>
+        </th>
+        <th class="border border-gray-300 px-4 py-2 text-xs">
+          <a
+            href={sortLink("match_date")}
+            class="flex items-center flex-row gap-1"
+            >Match Date <UpDownIcon class="w-3 h-3" /></a
+          >
+        </th>
+        <th class="border border-gray-300 px-4 py-2 text-xs">
+          <a
+            href={sortLink("position")}
+            class="flex items-center flex-row gap-1">Position <UpDownIcon class="w-3 h-3" /></a
+          >
+        </th>
+        <th class="border border-gray-300 px-4 py-2 text-xs">
+          <a
+            href={sortLink("minutes_played")}
+            class="flex items-center flex-row gap-1">Min <UpDownIcon class="w-3 h-3" /></a
+          >
+        </th>
+        <th class="border border-gray-300 px-4 py-2 text-xs">
+          <a href={sortLink("goals")} class="flex items-center flex-row gap-1"
+            >Goals <UpDownIcon class="w-3 h-3" /></a
+          >
+        </th>
+        <th class="border border-gray-300 px-4 py-2 text-xs">
+          <a href={sortLink("assists")} class="flex items-center flex-row gap-1"
+            >Assists <UpDownIcon class="w-3 h-3" /></a
+          >
+        </th>
+        <th class="border border-gray-300 px-4 py-2 text-xs">
+          <a href={sortLink("shots")} class="flex items-center flex-row gap-1"
+            >Shots <UpDownIcon class="w-3 h-3" /></a
+          >
+        </th>
+        <th class="border border-gray-300 px-4 py-2 text-xs">
+          <a
+            href={sortLink("pass_accuracy")}
+            class="flex items-center flex-row gap-1"
+            >Pass Accuracy <UpDownIcon class="w-3 h-3" /></a
+          >
+        </th>
+        <th class="border border-gray-300 px-4 py-2 text-xs">
+          <a
+            href={sortLink("player_rating")}
+            class="flex items-center flex-row gap-1">Rating <UpDownIcon class="w-3 h-3" /></a
+          >
+        </th>
+      </tr>
+    </thead>
+    <tbody>
+      {
+        performances.length > 0 ? (
+          performances.map((performance) => (
+            <tr class="hover:bg-primary-10">
+              <td class="border border-gray-300 px-4 py-2 text-sm">
+                <a
+                  href={`/performances/${performance.id}`}
+                  class="flex flex-row items-center font-medium text-primary"
+                >
+                  <Avatar
+                    name={performance.player_name}
+                    size="sm"
+                    class="mr-2"
+                  />
+                  {performance.player_name}
+                </a>
+                <div class="pl-10 text-xs text-text-gray">
+                  #{performance.jersey_number} · {positionMap[performance.position] || performance.position}
+                </div>
+              </td>
+
+              <td class="border border-gray-300 px-4 py-2 text-xs">
+                {performance.team}
+              </td>
+              <td class="border border-gray-300 px-4 py-2 text-xs">
+                {performance.opponent_team}
+              </td>
+              <td class="border border-gray-300 px-4 py-2 text-xs">
+                {performance.match_date}
+              </td>
+              <td class="border border-gray-300 px-4 py-2 text-xs">
+                {positionMap[performance.position] || performance.position}
+              </td>
+              <td class="border border-gray-300 px-4 py-2 text-xs">
+                {performance.minutes_played}
+              </td>
+              <td class="border border-gray-300 px-4 py-2 text-xs">
+                {performance.goals}
+              </td>
+              <td class="border border-gray-300 px-4 py-2 text-xs">
+                {performance.assists}
+              </td>
+              <td class="border border-gray-300 px-4 py-2 text-xs">
+                {performance.shots}
+              </td>
+              <td class="border border-gray-300 px-4 py-2 text-xs">
+                {performance.pass_accuracy}
+              </td>
+              <td class="border border-gray-300 px-4 py-2 text-xs">
+                {performance.player_rating}
+              </td>
+            </tr>
+          ))
+        ) : (
+          <tr>
+            <td class="border border-gray-300 px-4 py-2" colspan="11">
+              No performances found.
+            </td>
+          </tr>
+        )
+      }
+    </tbody>
+  </table>
+</Layout>

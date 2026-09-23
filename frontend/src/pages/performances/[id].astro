@@ -1,0 +1,836 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import Button from "../../components/Button.astro";
+import InputNumber from "../../components/InputNumber.astro";
+import Avatar from "../../components/Avatar.astro";
+
+type PerformanceRow = {
+  id: number;
+  player_id: string;
+  player_name: string;
+  team: string;
+  opponent_team: string;
+  match_date: string;
+  position: string;
+  jersey_number: number;
+  stadium: string;
+  city: string;
+  match_result: string;
+  goals_team: number;
+  goals_opponent: number;
+  match_id: string;
+
+  // ⚽ Attacking
+  goals: number;
+  assists: number;
+  shots: number;
+  shots_on_target: number;
+  expected_goals_xg: number;
+  expected_assists_xa: number;
+  key_passes: number;
+  dribbles_attempted: number;
+  successful_dribbles: number;
+  crosses: number;
+  successful_crosses: number;
+  offsides: number;
+
+  // 🎯 Passing
+  successful_passes: number;
+  total_passes: number;
+  pass_accuracy: number;
+
+  // 🛡️ Defensive
+  tackles: number;
+  interceptions: number;
+  clearances: number;
+  blocks: number;
+  aerial_duels_won: number;
+  aerial_duels_lost: number;
+  recoveries: number;
+  defensive_actions: number;
+
+  // 🚨 Discipline
+  fouls_committed: number;
+  fouls_suffered: number;
+  yellow_cards: number;
+  red_cards: number;
+
+  // 🧤 Goalkeeper
+  saves: number;
+  save_percentage: number;
+  punches: number;
+  clean_sheet: number;
+  goals_conceded: number;
+  penalty_saves: number;
+
+  // 🏃 Physical
+  minutes_played: number;
+  distance_covered_km: number;
+  sprint_distance_km: number;
+  top_speed_kmh: number;
+  accelerations: number;
+  decelerations: number;
+  stamina_score: number;
+
+  // ⭐ Ratings & Advanced
+  player_rating: number;
+  performance_score: number;
+  offensive_contribution: number;
+  defensive_contribution: number;
+  possession_impact: number;
+  pressure_resistance: number;
+  creativity_score: number;
+  consistency_score: number;
+  clutch_performance_score: number;
+};
+
+const API_URL = "http://localhost:3000";
+const player_id: string | undefined = Astro.params.id;
+let performance: PerformanceRow | null;
+try {
+  const response = await fetch(`${API_URL}/performances/${player_id}`);
+  if (response.ok) {
+    performance = await response.json();
+  } else {
+    performance = null;
+  }
+} catch {
+  performance = null;
+}
+
+// Match date formatting
+const matchDate = new Date(performance?.match_date || "");
+const formattedDate = matchDate.toLocaleDateString("en-US", {
+  year: "numeric",
+  month: "long",
+  day: "numeric",
+});
+
+const matchRes = await fetch(`${API_URL}/matches/${performance?.match_id}`);
+---
+
+<Layout title="Performances" active="performances" container="w-full">
+  <div class="space-y-4 p-6">
+    <a id="backButton" class="text-sm text-primary cursor-pointer">← Back</a>
+    <h1 class="text-2xl font-bold">Update Performance</h1>
+    <p class="text-sm text-text-gray">
+      Explore player performances in World Cup 2026 matches.
+    </p>
+  </div>
+
+  <div
+    class="mx-6 grid grid-cols-1 md:grid-cols-3 gap-4 p-6 border border-gray-300 rounded-lg bg-gray-50 mb-6"
+  >
+    <div class="flex flex-row items-center gap-4">
+      <Avatar name={performance?.player_name} size="lg" class="mr-2" />
+      <div class="flex flex-col items-start gap-1">
+        <span class="font-bold text-gray-900">{performance?.player_name}</span>
+        <div class="text-sm text-text-gray">
+          #{performance?.jersey_number} · {performance?.position}
+        </div>
+        <span class="text-sm font-semibold">{performance?.team}</span>
+      </div>
+    </div>
+
+    <div class="flex flex-col items-center justify-center gap-2">
+      <div class="flex flex-col items-center gap-1">
+        <span class="text-xs uppercase tracking-wider text-gray-400 font-bold"
+          >Match</span
+        >
+        <span class="font-semibold text-gray-800"
+          >{performance?.team} vs {performance?.opponent_team}</span
+        >
+      </div>
+      <div class="flex flex-col items-center gap-1">
+        <span class="text-xs uppercase tracking-wider text-gray-400 font-bold"
+          >Date</span
+        >
+        <span class="text-sm text-gray-700">{formattedDate}</span>
+      </div>
+    </div>
+
+    <div class="flex flex-col items-center justify-center gap-2">
+      <div class="flex flex-col items-center gap-1">
+        <span class="text-xs uppercase tracking-wider text-gray-400 font-bold"
+          >Stadium</span
+        >
+        <span class="text-sm text-gray-700"
+          >{performance?.stadium}, {performance?.city}</span
+        >
+      </div>
+      <div class="flex flex-col items-center gap-1">
+        <span class="text-xs uppercase tracking-wider text-gray-400 font-bold"
+          >Result</span
+        >
+        <span class="font-semibold text-gray-800">
+          {performance?.match_result}
+          {performance?.goals_team} - {performance?.goals_opponent}
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <form id="performance-form" class="p-6">
+    <div class="flex flex-col gap-4">
+      <div class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+        <div class="flex items-center gap-2 mb-5">
+          <span class="text-2xl">⚽</span>
+          <div>
+            <h2 class="font-semibold text-lg text-gray-900">
+              Attacking Performance
+            </h2>
+            <p class="text-sm text-gray-500">
+              Offensive contribution during the match
+            </p>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-6 gap-4">
+          <InputNumber
+            id="goals"
+            name="goals"
+            label="Goals"
+            min={0}
+            max={100}
+            variant="integer"
+            value={performance?.goals || 0}
+          />
+          <InputNumber
+            id="assists"
+            name="assists"
+            label="Assists"
+            min={0}
+            max={100}
+            variant="integer"
+            value={performance?.assists || 0}
+          />
+          <InputNumber
+            id="shots"
+            name="shots"
+            label="Shots"
+            min={0}
+            max={100}
+            variant="integer"
+            value={performance?.shots || 0}
+          />
+          <InputNumber
+            id="shots_on_target"
+            name="shots_on_target"
+            label="Shots on Target"
+            min={0}
+            max={100}
+            variant="integer"
+            value={performance?.shots_on_target || 0}
+          />
+          <InputNumber
+            id="expected_goals_xg"
+            name="expected_goals_xg"
+            label="Expected Goals (xG)"
+            min={0}
+            max={10}
+            variant="decimal"
+            value={performance?.expected_goals_xg || 0.0}
+          />
+          <InputNumber
+            id="expected_assists_xa"
+            name="expected_assists_xa"
+            label="Expected Assists (xA)"
+            min={0}
+            max={10}
+            variant="decimal"
+            value={performance?.expected_assists_xa || 0.0}
+          />
+          <InputNumber
+            id="key_passes"
+            name="key_passes"
+            label="Key Passes"
+            min={0}
+            max={100}
+            variant="integer"
+            value={performance?.key_passes || 0}
+          />
+          <InputNumber
+            id="offsides"
+            name="offsides"
+            label="Offsides"
+            min={0}
+            max={50}
+            variant="integer"
+            value={performance?.offsides || 0}
+          />
+          <InputNumber
+            id="dribbles_attempted"
+            name="dribbles_attempted"
+            label="Dribbles Attempted"
+            min={0}
+            max={100}
+            variant="integer"
+            value={performance?.dribbles_attempted || 0}
+          />
+          <InputNumber
+            id="successful_dribbles"
+            name="successful_dribbles"
+            label="Successful Dribbles"
+            min={0}
+            max={100}
+            variant="integer"
+            value={performance?.successful_dribbles || 0}
+          />
+          <InputNumber
+            id="crosses"
+            name="crosses"
+            label="Crosses"
+            min={0}
+            max={100}
+            variant="integer"
+            value={performance?.crosses || 0}
+          />
+          <InputNumber
+            id="successful_crosses"
+            name="successful_crosses"
+            label="Successful Crosses"
+            min={0}
+            max={100}
+            variant="integer"
+            value={performance?.successful_crosses || 0}
+          />
+        </div>
+      </div>
+
+      <div class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+        <div class="flex items-center gap-2 mb-5">
+          <span class="text-2xl">🎯</span>
+          <div>
+            <h2 class="font-semibold text-lg text-gray-900">
+              Passing Performance
+            </h2>
+            <p class="text-sm text-gray-500">
+              Pure distribution metrics and accuracy
+            </p>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-6 gap-4">
+          <InputNumber
+            id="successful_passes"
+            name="successful_passes"
+            label="Successful Passes"
+            min={0}
+            max={500}
+            variant="integer"
+            value={performance?.successful_passes || 0}
+          />
+          <InputNumber
+            id="total_passes"
+            name="total_passes"
+            label="Total Passes"
+            min={0}
+            max={500}
+            variant="integer"
+            value={performance?.total_passes || 0}
+          />
+          <InputNumber
+            id="pass_accuracy"
+            name="pass_accuracy"
+            label="Pass Accuracy %"
+            min={0}
+            max={100}
+            variant="decimal"
+            value={performance?.pass_accuracy || 0.0}
+          />
+        </div>
+      </div>
+
+      <div class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+        <div class="flex items-center gap-2 mb-5">
+          <span class="text-2xl">🛡️</span>
+          <div>
+            <h2 class="font-semibold text-lg text-gray-900">
+              Defensive Performance
+            </h2>
+            <p class="text-sm text-gray-500">
+              Defensive action totals and aerial battles
+            </p>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-6 gap-4">
+          <InputNumber
+            id="tackles"
+            name="tackles"
+            label="Tackles"
+            min={0}
+            max={100}
+            variant="integer"
+            value={performance?.tackles || 0}
+          />
+          <InputNumber
+            id="interceptions"
+            name="interceptions"
+            label="Interceptions"
+            min={0}
+            max={100}
+            variant="integer"
+            value={performance?.interceptions || 0}
+          />
+          <InputNumber
+            id="clearances"
+            name="clearances"
+            label="Clearances"
+            min={0}
+            max={100}
+            variant="integer"
+            value={performance?.clearances || 0}
+          />
+          <InputNumber
+            id="blocks"
+            name="blocks"
+            label="Blocks"
+            min={0}
+            max={100}
+            variant="integer"
+            value={performance?.blocks || 0}
+          />
+          <InputNumber
+            id="aerial_duels_won"
+            name="aerial_duels_won"
+            label="Aerial Won"
+            min={0}
+            max={100}
+            variant="integer"
+            value={performance?.aerial_duels_won || 0}
+          />
+          <InputNumber
+            id="aerial_duels_lost"
+            name="aerial_duels_lost"
+            label="Aerial Lost"
+            min={0}
+            max={100}
+            variant="integer"
+            value={performance?.aerial_duels_lost || 0}
+          />
+          <InputNumber
+            id="recoveries"
+            name="recoveries"
+            label="Recoveries"
+            min={0}
+            max={100}
+            variant="integer"
+            value={performance?.recoveries || 0}
+          />
+          <InputNumber
+            id="defensive_actions"
+            name="defensive_actions"
+            label="Defensive Actions"
+            min={0}
+            max={200}
+            variant="integer"
+            value={performance?.defensive_actions || 0}
+          />
+        </div>
+      </div>
+
+      <div class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+        <div class="flex items-center gap-2 mb-5">
+          <span class="text-2xl">🚨</span>
+          <div>
+            <h2 class="font-semibold text-lg text-gray-900">Discipline</h2>
+            <p class="text-sm text-gray-500">Cards and fouls metrics</p>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-6 gap-4">
+          <InputNumber
+            id="fouls_committed"
+            name="fouls_committed"
+            label="Fouls Committed"
+            min={0}
+            max={50}
+            variant="integer"
+            value={performance?.fouls_committed || 0}
+          />
+          <InputNumber
+            id="fouls_suffered"
+            name="fouls_suffered"
+            label="Fouls Suffered"
+            min={0}
+            max={50}
+            variant="integer"
+            value={performance?.fouls_suffered || 0}
+          />
+          <InputNumber
+            id="yellow_cards"
+            name="yellow_cards"
+            label="Yellow Cards"
+            min={0}
+            max={2}
+            variant="integer"
+            value={performance?.yellow_cards || 0}
+          />
+          <InputNumber
+            id="red_cards"
+            name="red_cards"
+            label="Red Cards"
+            min={0}
+            max={1}
+            variant="integer"
+            value={performance?.red_cards || 0}
+          />
+        </div>
+      </div>
+
+      <div class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+        <div class="flex items-center gap-2 mb-5">
+          <span class="text-2xl">🧤</span>
+          <div>
+            <h2 class="font-semibold text-lg text-gray-900">
+              Goalkeeper Statistics
+            </h2>
+            <p class="text-sm text-gray-500">
+              Saves, concessions, and box control
+            </p>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-6 gap-4">
+          <InputNumber
+            id="saves"
+            name="saves"
+            label="Saves"
+            min={0}
+            max={100}
+            variant="integer"
+            value={performance?.saves || 0}
+          />
+          <InputNumber
+            id="save_percentage"
+            name="save_percentage"
+            label="Save %"
+            min={0}
+            max={100}
+            variant="decimal"
+            value={performance?.save_percentage || 0.0}
+          />
+          <InputNumber
+            id="punches"
+            name="punches"
+            label="Punches"
+            min={0}
+            max={50}
+            variant="integer"
+            value={performance?.punches || 0}
+          />
+          <InputNumber
+            id="clean_sheet"
+            name="clean_sheet"
+            label="Clean Sheet"
+            min={0}
+            max={1}
+            variant="integer"
+            value={performance?.clean_sheet || 0}
+          />
+          <InputNumber
+            id="goals_conceded"
+            name="goals_conceded"
+            label="Goals Conceded"
+            min={0}
+            max={50}
+            variant="integer"
+            value={performance?.goals_conceded || 0}
+          />
+          <InputNumber
+            id="penalty_saves"
+            name="penalty_saves"
+            label="Penalty Saves"
+            min={0}
+            max={20}
+            variant="integer"
+            value={performance?.penalty_saves || 0}
+          />
+        </div>
+      </div>
+
+      <div class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+        <div class="flex items-center gap-2 mb-5">
+          <span class="text-2xl">🏃</span>
+          <div>
+            <h2 class="font-semibold text-lg text-gray-900">
+              Physical & Athletic Metrics
+            </h2>
+            <p class="text-sm text-gray-500">
+              Distance, pacing, and dynamic movement indices
+            </p>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-6 gap-4">
+          <InputNumber
+            id="minutes_played"
+            name="minutes_played"
+            label="Minutes Played"
+            min={0}
+            max={200}
+            variant="integer"
+            value={performance?.minutes_played || 0}
+          />
+          <InputNumber
+            id="distance_covered_km"
+            name="distance_covered_km"
+            label="Distance Covered (km)"
+            min={0}
+            max={50}
+            variant="decimal"
+            value={performance?.distance_covered_km || 0.0}
+          />
+          <InputNumber
+            id="sprint_distance_km"
+            name="sprint_distance_km"
+            label="Sprint Distance (km)"
+            min={0}
+            max={50}
+            variant="decimal"
+            value={performance?.sprint_distance_km || 0.0}
+          />
+          <InputNumber
+            id="top_speed_kmh"
+            name="top_speed_kmh"
+            label="Top Speed (km/h)"
+            min={0}
+            max={60}
+            variant="decimal"
+            value={performance?.top_speed_kmh || 0.0}
+          />
+          <InputNumber
+            id="accelerations"
+            name="accelerations"
+            label="Accelerations"
+            min={0}
+            max={200}
+            variant="integer"
+            value={performance?.accelerations || 0}
+          />
+          <InputNumber
+            id="decelerations"
+            name="decelerations"
+            label="Decelerations"
+            min={0}
+            max={200}
+            variant="integer"
+            value={performance?.decelerations || 0}
+          />
+          <InputNumber
+            id="stamina_score"
+            name="stamina_score"
+            label="Stamina Score"
+            min={0}
+            max={100}
+            variant="integer"
+            value={performance?.stamina_score || 0}
+          />
+        </div>
+      </div>
+
+      <div
+        class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm xl:col-span-2"
+      >
+        <div class="flex items-center gap-2 mb-5">
+          <span class="text-2xl">⭐</span>
+          <div>
+            <h2 class="font-semibold text-lg text-gray-900">
+              Player Ratings & Advanced Metrics
+            </h2>
+            <p class="text-sm text-gray-500">Aggregated match impact indices</p>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-6 gap-4">
+          <InputNumber
+            id="player_rating"
+            name="player_rating"
+            label="Player Rating"
+            min={0}
+            max={10}
+            variant="decimal"
+            value={performance?.player_rating || 0.0}
+          />
+          <InputNumber
+            id="performance_score"
+            name="performance_score"
+            label="Performance Score"
+            min={0}
+            max={100}
+            variant="integer"
+            value={performance?.performance_score || 0}
+          />
+          <InputNumber
+            id="offensive_contribution"
+            name="offensive_contribution"
+            label="Offensive Contribution"
+            min={0}
+            max={100}
+            variant="integer"
+            value={performance?.offensive_contribution || 0}
+          />
+          <InputNumber
+            id="defensive_contribution"
+            name="defensive_contribution"
+            label="Defensive Contribution"
+            min={0}
+            max={100}
+            variant="integer"
+            value={performance?.defensive_contribution || 0}
+          />
+          <InputNumber
+            id="possession_impact"
+            name="possession_impact"
+            label="Possession Impact"
+            min={0}
+            max={100}
+            variant="integer"
+            value={performance?.possession_impact || 0}
+          />
+          <InputNumber
+            id="pressure_resistance"
+            name="pressure_resistance"
+            label="Pressure Resistance"
+            min={0}
+            max={100}
+            variant="integer"
+            value={performance?.pressure_resistance || 0}
+          />
+          <InputNumber
+            id="creativity_score"
+            name="creativity_score"
+            label="Creativity Score"
+            min={0}
+            max={100}
+            variant="integer"
+            value={performance?.creativity_score || 0}
+          />
+          <InputNumber
+            id="consistency_score"
+            name="consistency_score"
+            label="Consistency Score"
+            min={0}
+            max={100}
+            variant="integer"
+            value={performance?.consistency_score || 0}
+          />
+          <div class="col-span-2 md:col-span-1">
+            <InputNumber
+              id="clutch_performance_score"
+              name="clutch_performance_score"
+              label="Clutch Performance Score"
+              min={0}
+              max={100}
+              variant="integer"
+              value={performance?.clutch_performance_score || 0}
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div
+      class="mt-8 flex items-center justify-end gap-4 border-t border-gray-200 pt-6"
+    >
+      <Button variant="danger" id="deletePerformance" type="button">
+        Delete
+      </Button>
+      <Button variant="primary" id="savePerformance" type="button">
+        Save
+      </Button>
+    </div>
+  </form>
+
+</Layout>
+
+<script define:vars={{
+  performanceId: performance?.id,
+  matchId: performance?.match_id,
+  API_URL
+}}>
+  const deleteBtn = document.querySelector("#deletePerformance");
+  const saveBtn = document.querySelector("#savePerformance");
+  const backButton = document.querySelector("#backButton");
+
+  // Modal Elements
+  const saveConfirmModal = document.querySelector("#saveConfirmModal");
+  const modalBtnCancel = document.querySelector("#modalBtnCancel");
+
+  // Pack form fields and send the data
+  async function submitPerformanceData() {
+    const form = document.querySelector("#performance-form");
+    if (!form) return false;
+
+    const formData = new FormData(form);
+    const body = {};
+    
+    formData.forEach((value, key) => {
+      if (value === "") {
+        body[key] = null;
+      } else if (!isNaN(Number(value))) {
+        body[key] = Number(value);
+      } else {
+        body[key] = value;
+      }
+    });
+
+    try {
+      const response = await fetch(`${API_URL}/performances/${performanceId}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(body),
+      });
+      return response.ok;
+    } catch (e) {
+      console.error(e);
+      return false;
+    }
+  }
+
+  backButton?.addEventListener("click", () => {
+	window.history.back(); // Go back to the previous page (match details)
+  });
+
+saveBtn?.addEventListener("click", async () => {
+  saveBtn.disabled = true;
+
+  const success = await submitPerformanceData();
+
+  if (success) {
+    alert("Performance updated successfully.");
+    window.history.back(); // Go back to the previous page (match details)
+  } else {
+    alert("Failed to save changes.");
+    saveBtn.disabled = false;
+    saveBtn.innerText = "Save";
+  }
+});
+
+  // Cancel action
+  modalBtnCancel?.addEventListener("click", () => {
+    if (saveConfirmModal) {
+      saveConfirmModal.classList.remove("flex");
+      saveConfirmModal.classList.add("hidden");
+    }
+  });
+
+  // Delete Action
+  deleteBtn?.addEventListener("click", async () => {
+    if (!confirm("Are you sure you want to delete this performance?")) return;
+
+    const response = await fetch(`${API_URL}/performances/${performanceId}`, {
+      method: "DELETE",
+    });
+
+    if (response.ok) {
+      alert("Performance deleted successfully.");
+      window.history.back(); // Go back to the previous page (match details)
+    } else {
+      alert("Failed to delete performance.");
+    }
+  });
+</script>

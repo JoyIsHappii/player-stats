@@ -1,0 +1,100 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import SortDropdown from "../../components/SortDropdown.astro";
+import Avatar from "../../components/Avatar.astro";
+
+const sortOptions = [
+  { label: "Matches Played", value: "matches_played" },
+  { label: "Goals", value: "total_goals" },
+  { label: "Assists", value: "total_assists" },
+  { label: "Rating", value: "avg_rating" },
+];
+
+const API_URL = "http://localhost:3000";
+
+const sortBy = Astro.url.searchParams.get("sortBy") || "total_goals";
+
+const res = await fetch(`${API_URL}/performances/rankings?sortBy=${sortBy}`);
+
+type RankingRow = {
+  player_id: string;
+  player_name: string;
+  team: string;
+  matches_played: number;
+  total_goals: string;
+  total_assists: string;
+  avg_rating: string;
+  jersey_number: number;
+  position: string;
+};
+
+const rankings: RankingRow[] = res.ok ? await res.json() : [];
+---
+
+<Layout title="Rankings" active="rankings" container="w-full">
+  <div class="space-y-4 p-6">
+    <h1 class="text-2xl font-bold">Rankings</h1>
+    <p class="text-sm text-text-gray">
+      Explore the top players in World Cup 2026 across key performance metrics.
+    </p>
+
+    <SortDropdown id="rankings-sort" options={sortOptions} current={sortBy} />
+
+    <table class="w-full border-collapse border border-gray-300">
+      <thead>
+        <tr>
+          <th class="border border-gray-300 px-4 py-2">Rank</th>
+          <th class="border border-gray-300 px-4 py-2">Player</th>
+          <th class="border border-gray-300 px-4 py-2">Team</th>
+          <th class="border border-gray-300 px-4 py-2">Matches Played</th>
+          <th class="border border-gray-300 px-4 py-2">Total Goals</th>
+          <th class="border border-gray-300 px-4 py-2">Total Assists</th>
+          <th class="border border-gray-300 px-4 py-2">Average Rating</th>
+        </tr>
+      </thead>
+      <tbody>
+        {
+          rankings.map((player, index) => (
+            <tr>
+              <td class="border border-gray-300 px-4 py-2 text-center font-bold">
+                {index + 1}
+              </td>
+              <td class="border border-gray-300 px-4 py-2 font-medium">
+                <div
+                  class="flex flex-row items-center font-medium text-primary"
+                >
+                  <Avatar name={player.player_name} size="sm" class="mr-2" />
+                  {player.player_name}
+                </div>
+                <div class="pl-10 text-sm text-text-gray">
+                  #{player.jersey_number} {player.position}
+                </div>
+              </td>
+              <td class="border border-gray-300 px-4 py-2">{player.team}</td>
+              <td class="border border-gray-300 px-4 py-2 text-center">
+                {player.matches_played}
+              </td>
+              <td class="border border-gray-300 px-4 py-2 text-center">
+                {player.total_goals}
+              </td>
+              <td class="border border-gray-300 px-4 py-2 text-center">
+                {player.total_assists}
+              </td>
+              {/* pg returns AVG() as a string — convert before formatting */}
+              <td class="border border-gray-300 px-4 py-2 text-center">
+                {Number(player.avg_rating).toFixed(2)}
+              </td>
+            </tr>
+          ))
+        }
+      </tbody>
+    </table>
+  </div>
+</Layout>
+
+<script>
+  document.addEventListener("sort-change", (e) => {
+    const { sortBy } = (e as CustomEvent).detail;
+    location.href = `/rankings?sortBy=${sortBy}`;
+  });
+</script>

@@ -1,0 +1,44 @@
+---
+// src/components/SortDropdown.astro
+export interface Props {
+  id?: string;
+  label?: string;
+  options: { label: string; value: string }[];
+  current?: string; // value to preselect, e.g. the sortBy from the URL
+}
+
+const { id, label = "Sort by:", options, current } = Astro.props;
+---
+
+<div id={id} class="sort-container inline-flex items-center gap-x-2">
+  <label for={`${id}-select`} class="text-sm font-medium text-gray-700">
+    {label}
+  </label>
+  <select
+    id={`${id}-select`}
+    class="sort-select rounded-md border-0 py-2 pl-3 pr-10 text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-indigo-600 sm:text-sm bg-white cursor-pointer"
+  >
+    {options.map((option) => (
+      <option value={option.value} selected={option.value === current}>
+        {option.label}
+      </option>
+    ))}
+  </select>
+</div>
+
+<script>
+  // Handle all sort component instances on the page
+  document.querySelectorAll('.sort-container').forEach((container) => {
+    const selectElement = container.querySelector('.sort-select') as HTMLSelectElement;
+
+    selectElement.addEventListener('change', (e) => {
+      const selectedValue = (e.target as HTMLSelectElement).value;
+
+      // Dispatch event bubbling up to the parent page
+      container.dispatchEvent(new CustomEvent('sort-change', {
+        bubbles: true,
+        detail: { sortBy: selectedValue }
+      }));
+    });
+  });
+</script>

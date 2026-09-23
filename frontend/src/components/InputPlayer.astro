@@ -1,0 +1,49 @@
+---
+import InputField from "./InputField.astro";
+
+export interface Props {
+    label: string;
+  playerId: string;
+  playerName: string;
+  jerseyNumber: number;
+  position: string;
+}
+const {
+    label,
+  playerId,
+  playerName,
+  jerseyNumber,
+  position
+} = Astro.props;
+
+
+---
+
+<div class="flex flex-col gap-1">
+Player 1
+  <div class="flex flex-row gap-1">
+     <InputField
+          label="Player name"
+          name="player1"
+          placeholder="Enter Player 1"
+          type="text"
+          required
+        />
+             <InputField
+          label="Jersey Number"
+          name="player1"
+          placeholder="Enter Player 1"
+          type="text"
+          required
+        />
+                     <InputField
+          label="Position"
+          name="player1"
+          placeholder="Enter Player 1"
+          type="text"
+          required
+        />
+        
+  </div>
+
+</div>

@@ -1,0 +1,47 @@
+---
+export interface Props {
+  label: string;
+  name: string;
+  value?: string | number;
+  placeholder?: string;
+  type?: "number" | "date" | "text" | "email" | "password" | undefined;
+  required?: boolean;
+  disabled?: boolean;
+  min?: number;
+  max?: number;
+  step?: number;
+}
+const {
+  label,
+  name,
+  value,
+  placeholder,
+  type = "text",
+  required = false,
+  disabled = false,
+  min,
+  max,
+  step
+} = Astro.props;
+
+---
+
+<div class="flex flex-col gap-1">
+  <label for={name} class="text-sm text-text-gray">
+    {label}
+  </label>
+  <input
+    type={type}
+    id={name}
+    name={name}
+    value={value}
+    placeholder={placeholder}
+    required={required}
+    disabled={disabled}
+    min={min}
+    max={max}
+    step={step}
+    class="rounded-lg border border-text-gray-50 px-3 py-2 text-text-black h-10 w-full disabled:bg-primary-10 disabled:text-text-gray"
+  />
+</div>
+

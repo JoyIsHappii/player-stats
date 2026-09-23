@@ -1,0 +1,310 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import Button from "../../components/Button.astro";
+import InputNumber from "../../components/InputNumber.astro";
+import InputField from "../../components/InputField.astro";
+import SearchField from "../../components/SearchField.astro";
+import Pagination from "../../components/Pagination.astro";
+import Avatar from "../../components/Avatar.astro";
+
+const API_URL = "http://localhost:3000";
+
+const matchId = Astro.params.id;
+
+type MatchInfo = {
+  match_id: string;
+  match_date: string;
+  stadium: string;
+  city: string;
+  tournament_stage: string;
+  team_a: string;
+  team_b: string;
+  goals_a: number;
+  goals_b: number;
+  goals_team: number;
+  goals_opponent: number;
+  minutes_played: number;
+};
+
+// 1) the match itself (header + form values)
+const matchRes = await fetch(`${API_URL}/matches/${matchId}`);
+if (!matchRes.ok) return Astro.redirect("/");
+const match: MatchInfo = await matchRes.json();
+
+// 2) ONLY this match's players — the /matches/:id/players endpoint
+//    filters by match_id in SQL (WHERE pf.match_id = $1)
+const page = parseInt(Astro.url.searchParams.get("page") || "1", 10);
+const limit = parseInt(Astro.url.searchParams.get("limit") || "10", 10);
+const search = Astro.url.searchParams.get("search") || "";
+
+let players: MatchPlayerRow[] = [];
+let totalPages = 1;
+let totalCount = 0;
+
+const playersRes = await fetch(
+  `${API_URL}/matches/${matchId}/players?page=${page}&limit=${limit}&search=${encodeURIComponent(search)}`,
+);
+if (playersRes.ok) {
+  const data = await playersRes.json();
+  players = data.players ?? [];
+  totalCount = data.total ?? 0;
+  totalPages = Math.max(1, Math.ceil(totalCount / limit));
+}
+
+type MatchPlayerRow = {
+  id: number;
+  player_name: string;
+  team: string;
+  position: string;
+  jersey_number: number;
+  minutes_played: number;
+  goals: number;
+  assists: number;
+  player_rating: number;
+};
+---
+
+<Layout
+  title={`${match.team_a ?? "TBD"} vs ${match.team_b ?? "TBD"}`}
+  active="matches"
+  container="w-full p-8"
+>
+  <div class="flex flex-row justify-between items-center gap-4">
+    <div class="gap-4">
+    <a href="/" class="text-sm text-primary">← Back</a>
+    <h1 class="text-2xl font-bold">
+      {match.team_a ?? "TBD"} vs {match.team_b ?? "TBD"}
+    </h1>
+    </div>
+    <div class="flex flex-row gap-4">
+      <Button variant="primary" id="saveMatch" type="button">
+        Save Changes
+      </Button>
+      <Button variant="danger" id="deleteMatch" type="button">
+        Delete Match
+      </Button>
+    </div>
+  </div>
+
+  <div class="flex flex-col gap-4 py-6">
+    <!-- Match Details-->
+    <form id="match-form" class="gap-4 p-6 border border-gray-300 rounded-lg">
+      <h2 class="font-semibold gap-4">Match Details</h2>
+
+      <div class="grid grid-cols-3 gap-4">
+        <InputField
+          name="match_id"
+          label="Match ID"
+          value={match.match_id}
+          disabled
+        />
+        <!-- <InputField
+          name="minutes_played"
+          label="Minutes Played"
+          value={match.minutes_played}
+        /> -->
+
+        <InputField
+          name="team_a"
+          label="Team A"
+          value={match.team_a}
+          disabled
+        />
+        <InputField
+          name="team_b"
+          label="Team B"
+          value={match.team_b}
+          disabled
+        />
+        <InputField name="stadium" label="Stadium" value={match.stadium} />
+        <InputField name="city" label="City" value={match.city} />
+        <InputField
+          name="tournament_stage"
+          label="Tournament Stage"
+          value={match.tournament_stage}
+        />
+        <InputField
+          name="match_date"
+          label="Match Date"
+          type="date"
+          value={match.match_date?.slice(0, 10)}
+        />
+
+        <InputNumber
+          id="goals_a"
+          label={`Goals ${match.team_a ?? "TBD"}`}
+          min={0}
+          max={200}
+          variant="integer"
+          value={match.goals_a}
+        />
+        <InputNumber
+          id="goals_b"
+          label={`Goals ${match.team_b ?? "TBD"}`}
+          min={0}
+          max={200}
+          variant="integer"
+          value={match.goals_b}
+        />
+      </div>
+    </form>
+
+    <!-- Players of THIS match -->
+    <div class="grid col-span-3 gap-4 p-6 border border-gray-300 rounded-lg">
+      <div class="flex flex-row items-center gap-4">
+        <h2 class="font-semibold">Players List ({totalCount})</h2>
+        <SearchField />
+        <Button
+          variant="primary"
+          href={`/performances/add?match_id=${matchId}`}
+        >
+          + Add Player
+        </Button>
+      </div>
+
+      <Pagination
+        page={page}
+        totalPages={totalPages}
+        limit={limit}
+        search={search}
+        sortBy=""
+        sortOrder=""
+      />
+
+      <table class="w-full border-collapse border border-gray-300 mt-4">
+        <thead>
+          <tr class="bg-gray-100">
+            <th class="border border-gray-300 px-4 py-2 text-xs">Player</th>
+            <th class="border border-gray-300 px-4 py-2 text-xs">Team</th>
+            <th class="border border-gray-300 px-4 py-2 text-xs">Position</th>
+            <th class="border border-gray-300 px-4 py-2 text-xs"
+              >Jersey Number</th
+            >
+            <th class="border border-gray-300 px-4 py-2 text-xs">Goals</th>
+            <th class="border border-gray-300 px-4 py-2 text-xs">Assists</th>
+
+            <th class="border border-gray-300 px-4 py-2 text-xs"></th>
+            <!-- <th class="border border-gray-300 px-4 py-2 text-xs"></th> -->
+          </tr>
+        </thead>
+        <tbody>
+          {
+            players.length > 0 ? (
+              players.map((player) => (
+                <tr class="hover:bg-primary-10">
+                  <td class="border border-gray-300 px-4 py-2 text-sm">
+                    <span class="flex flex-row items-center font-medium">
+                      <Avatar
+                        name={player.player_name}
+                        size="sm"
+                        class="mr-2"
+                      />
+                      {player.player_name}
+                    </span>
+                  </td>
+                  <td class="border border-gray-300 px-4 py-2 text-xs">
+                    {player.team}
+                  </td>
+                  <td class="border border-gray-300 px-4 py-2 text-xs">
+                    {player.position}
+                  </td>
+                  <td class="border border-gray-300 px-4 py-2 text-xs">
+                    {player.jersey_number}
+                  </td>
+                  <td class="border border-gray-300 px-4 py-2 text-xs">
+                    {player.goals}
+                  </td>
+                  <td class="border border-gray-300 px-4 py-2 text-xs">
+                    {player.assists}
+                  </td>
+                  <td class="border border-gray-300 px-4 py-2 text-xs">
+                    <Button
+                      variant="primary"
+                      href={`/performances/${player.id}`}
+                    >
+                      View
+                    </Button>
+                  </td>
+                  {/* <td class="border border-gray-300 px-4 py-2 text-xs">
+                    <Button
+                      variant="primary"
+                      href={`/performances/${player.id}`}
+                    >
+                      Delete
+                    </Button>
+                  </td> */}
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td class="border border-gray-300 px-4 py-2" colspan="8">
+                  No players found for this match.
+                </td>
+              </tr>
+            )
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+</Layout>
+
+<!-- define:vars injects frontmatter values into the client script —
+     plain {matchId} inside <script> is NOT interpolated by Astro -->
+<script define:vars={{ matchId, teamA: match.team_a, teamB: match.team_b }}>
+  const API_URL = "http://localhost:3000";
+
+  const deleteBtn = document.querySelector("#deleteMatch");
+  const saveBtn = document.querySelector("#saveMatch");
+
+  deleteBtn?.addEventListener("click", async () => {
+    const confirmed = confirm("Are you sure you want to delete this match?");
+
+    if (!confirmed) return;
+
+    const response = await fetch(`${API_URL}/matches/${matchId}`, {
+      method: "DELETE",
+    });
+
+    if (response.ok) {
+      alert("Match deleted successfully.");
+      window.location.href = "/";
+    } else {
+      alert("Failed to delete match.");
+    }
+  });
+
+  saveBtn?.addEventListener("click", async () => {
+    const confirmed = confirm("Are you sure you want to save changes?");
+
+    if (!confirmed) return;
+
+    // target the match form specifically — the page has other forms
+    // (search, pagination)
+    const form = document.querySelector("#match-form");
+
+    if (!form) return;
+
+    // FormData alone would send multipart/form-data, which our Express
+    // app can't parse (it only has express.json()) — convert to JSON
+    const body = Object.fromEntries(new FormData(form));
+
+    // team_a in the form is the (possibly edited) NEW name; the backend
+    // also needs the ORIGINAL name to match performances rows by side
+    body.orig_team_a = teamA;
+    body.team_b = teamB;
+
+    const response = await fetch(`${API_URL}/matches/${matchId}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+
+    if (response.ok) {
+      alert("Match updated successfully.");
+      window.location.reload();
+    } else {
+      alert("Failed to update match.");
+    }
+  });
+</script>

@@ -1,0 +1,371 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import Button from "../../components/Button.astro";
+import InputNumber from "../../components/InputNumber.astro";
+import InputField from "../../components/InputField.astro";
+import Avatar from "../../components/Avatar.astro";
+
+const API_URL = "http://localhost:3000";
+
+const matchId = Astro.url.searchParams.get("match_id") || "";
+
+type MatchInfo = {
+  match_id: string;
+  match_date: string;
+  stadium: string;
+  city: string;
+  tournament_stage: string;
+  team_a: string | null;
+  team_b: string | null;
+  goals_a: number | null;
+  goals_b: number | null;
+};
+
+let match: MatchInfo | null = null;
+if (matchId) {
+  const res = await fetch(`${API_URL}/matches/${matchId}`);
+  if (res.ok) match = await res.json();
+}
+
+const formattedDate = match?.match_date
+  ? new Date(match.match_date).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    })
+  : "—";
+---
+
+<Layout title="Add Player" active="performances" container="w-full">
+  <div class="space-y-4 p-6">
+    <div class="flex gap-4">
+      <a href={matchId ? `/matches/${matchId}` : "/performances"} class="text-sm text-primary">
+        ← Back
+      </a>
+    </div>
+    <h1 class="text-2xl font-bold">Add Player Performance</h1>
+    <p class="text-sm text-text-gray">
+      Add a new player performance for the match.
+    </p>
+  </div>
+
+  <div class="mx-6 mb-4 p-4 border border-gray-300 rounded-lg bg-white flex flex-row items-center gap-4 max-w-md">
+    <InputField name="player_id" id="player_id" label="Player ID" placeholder="P00001" required />
+    <div class="pt-6">
+      <Button id="fetch-player" variant="primary" type="button">
+        Add Player
+      </Button>
+    </div>
+  </div>
+
+  <div
+    class="mx-6 grid grid-cols-1 md:grid-cols-3 gap-4 p-6 border border-gray-300 rounded-lg bg-gray-50 mb-6"
+  >
+    <div class="flex flex-row items-center gap-4">
+      <div id="player-avatar-container">
+        <Avatar name="⚽" size="lg" class="mr-2" />
+      </div>
+      <div class="flex flex-col items-start gap-1">
+        <span id="player-name" class="font-bold text-gray-900">No player selected</span>
+        <div id="player-info" class="text-sm text-text-gray">
+          #— · —
+        </div>
+        <span id="player-team" class="text-sm font-semibold">—</span>
+      </div>
+    </div>
+
+    <div class="flex flex-col items-center justify-center gap-2">
+      <div class="flex flex-col items-center gap-1">
+        <span class="text-xs uppercase tracking-wider text-gray-400 font-bold">Match</span>
+        <span class="font-semibold text-gray-800">
+          {match?.team_a ?? "TBD"} vs {match?.team_b ?? "TBD"}
+        </span>
+      </div>
+      <div class="flex flex-col items-center gap-1">
+        <span class="text-xs uppercase tracking-wider text-gray-400 font-bold">Date</span>
+        <span class="text-sm text-gray-700">{formattedDate}</span>
+      </div>
+    </div>
+
+    <div class="flex flex-col items-center justify-center gap-2">
+      <div class="flex flex-col items-center gap-1">
+        <span class="text-xs uppercase tracking-wider text-gray-400 font-bold">Stadium</span>
+        <span class="text-sm text-gray-700 text-center">
+          {match ? `${match.stadium}, ${match.city}` : "—"}
+        </span>
+      </div>
+      <div class="flex flex-col items-center gap-1">
+        <span class="text-xs uppercase tracking-wider text-gray-400 font-bold">Result</span>
+        <span class="font-semibold text-gray-800">
+          {match?.goals_a ?? "?"} - {match?.goals_b ?? "?"}
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <form id="performance-form" class="p-6">
+    <input type="hidden" name="match_id" value={matchId} />
+    <input type="hidden" id="form_player_id" name="player_id" value="" />
+
+    <div class="flex flex-col gap-4">
+      
+      <div class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+        <div class="flex items-center gap-2 mb-5">
+          <span class="text-2xl">⚽</span>
+          <div>
+            <h2 class="font-semibold text-lg text-gray-900">Attacking Performance</h2>
+            <p class="text-sm text-gray-500">Offensive contribution during the match</p>
+          </div>
+        </div>
+        <div class="grid grid-cols-6 gap-4">
+          <InputNumber id="goals" name="goals" label="Goals" min={0} max={100} variant="integer" value={0} />
+          <InputNumber id="assists" name="assists" label="Assists" min={0} max={100} variant="integer" value={0} />
+          <InputNumber id="shots" name="shots" label="Shots" min={0} max={100} variant="integer" value={0} />
+          <InputNumber id="shots_on_target" name="shots_on_target" label="Shots on Target" min={0} max={100} variant="integer" value={0} />
+          <InputNumber id="expected_goals_xg" name="expected_goals_xg" label="Expected Goals (xG)" min={0} max={10} variant="decimal" value={0.0} />
+          <InputNumber id="expected_assists_xa" name="expected_assists_xa" label="Expected Assists (xA)" min={0} max={10} variant="decimal" value={0.0} />
+          <InputNumber id="key_passes" name="key_passes" label="Key Passes" min={0} max={100} variant="integer" value={0} />
+          <InputNumber id="offsides" name="offsides" label="Offsides" min={0} max={50} variant="integer" value={0} />
+          <InputNumber id="dribbles_attempted" name="dribbles_attempted" label="Dribbles Attempted" min={0} max={100} variant="integer" value={0} />
+          <InputNumber id="successful_dribbles" name="successful_dribbles" label="Successful Dribbles" min={0} max={100} variant="integer" value={0} />
+          <InputNumber id="crosses" name="crosses" label="Crosses" min={0} max={100} variant="integer" value={0} />
+          <InputNumber id="successful_crosses" name="successful_crosses" label="Successful Crosses" min={0} max={100} variant="integer" value={0} />
+        </div>
+      </div>
+
+      <div class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+        <div class="flex items-center gap-2 mb-5">
+          <span class="text-2xl">🎯</span>
+          <div>
+            <h2 class="font-semibold text-lg text-gray-900">Passing Performance</h2>
+            <p class="text-sm text-gray-500">Pure distribution metrics and accuracy</p>
+          </div>
+        </div>
+        <div class="grid grid-cols-6 gap-4">
+          <InputNumber id="successful_passes" name="successful_passes" label="Successful Passes" min={0} max={500} variant="integer" value={0} />
+          <InputNumber id="total_passes" name="total_passes" label="Total Passes" min={0} max={500} variant="integer" value={0} />
+          <InputNumber id="pass_accuracy" name="pass_accuracy" label="Pass Accuracy %" min={0} max={100} variant="decimal" value={0.0} />
+        </div>
+      </div>
+
+      <div class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+        <div class="flex items-center gap-2 mb-5">
+          <span class="text-2xl">🛡️</span>
+          <div>
+            <h2 class="font-semibold text-lg text-gray-900">Defensive Performance</h2>
+            <p class="text-sm text-gray-500">Defensive action totals and aerial battles</p>
+          </div>
+        </div>
+        <div class="grid grid-cols-6 gap-4">
+          <InputNumber id="tackles" name="tackles" label="Tackles" min={0} max={100} variant="integer" value={0} />
+          <InputNumber id="interceptions" name="interceptions" label="Interceptions" min={0} max={100} variant="integer" value={0} />
+          <InputNumber id="clearances" name="clearances" label="Clearances" min={0} max={100} variant="integer" value={0} />
+          <InputNumber id="blocks" name="blocks" label="Blocks" min={0} max={100} variant="integer" value={0} />
+          <InputNumber id="aerial_duels_won" name="aerial_duels_won" label="Aerial Won" min={0} max={100} variant="integer" value={0} />
+          <InputNumber id="aerial_duels_lost" name="aerial_duels_lost" label="Aerial Lost" min={0} max={100} variant="integer" value={0} />
+          <InputNumber id="recoveries" name="recoveries" label="Recoveries" min={0} max={100} variant="integer" value={0} />
+          <InputNumber id="defensive_actions" name="defensive_actions" label="Defensive Actions" min={0} max={200} variant="integer" value={0} />
+        </div>
+      </div>
+
+      <div class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+        <div class="flex items-center gap-2 mb-5">
+          <span class="text-2xl">🚨</span>
+          <div>
+            <h2 class="font-semibold text-lg text-gray-900">Discipline</h2>
+            <p class="text-sm text-gray-500">Cards and fouls metrics</p>
+          </div>
+        </div>
+        <div class="grid grid-cols-6 gap-4">
+          <InputNumber id="fouls_committed" name="fouls_committed" label="Fouls Committed" min={0} max={50} variant="integer" value={0} />
+          <InputNumber id="fouls_suffered" name="fouls_suffered" label="Fouls Suffered" min={0} max={50} variant="integer" value={0} />
+          <InputNumber id="yellow_cards" name="yellow_cards" label="Yellow Cards" min={0} max={2} variant="integer" value={0} />
+          <InputNumber id="red_cards" name="red_cards" label="Red Cards" min={0} max={1} variant="integer" value={0} />
+        </div>
+      </div>
+
+      <div class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+        <div class="flex items-center gap-2 mb-5">
+          <span class="text-2xl">🧤</span>
+          <div>
+            <h2 class="font-semibold text-lg text-gray-900">Goalkeeper Statistics</h2>
+            <p class="text-sm text-gray-500">Saves, concessions, and box control</p>
+          </div>
+        </div>
+        <div class="grid grid-cols-6 gap-4">
+          <InputNumber id="saves" name="saves" label="Saves" min={0} max={100} variant="integer" value={0} />
+          <InputNumber id="save_percentage" name="save_percentage" label="Save %" min={0} max={100} variant="decimal" value={0.0} />
+          <InputNumber id="punches" name="punches" label="Punches" min={0} max={50} variant="integer" value={0} />
+          <InputNumber id="clean_sheet" name="clean_sheet" label="Clean Sheet" min={0} max={1} variant="integer" value={0} />
+          <InputNumber id="goals_conceded" name="goals_conceded" label="Goals Conceded" min={0} max={50} variant="integer" value={0} />
+          <InputNumber id="penalty_saves" name="penalty_saves" label="Penalty Saves" min={0} max={20} variant="integer" value={0} />
+        </div>
+      </div>
+
+      <div class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+        <div class="flex items-center gap-2 mb-5">
+          <span class="text-2xl">🏃</span>
+          <div>
+            <h2 class="font-semibold text-lg text-gray-900">Physical & Athletic Metrics</h2>
+            <p class="text-sm text-gray-500">Distance, pacing, and dynamic movement indices</p>
+          </div>
+        </div>
+        <div class="grid grid-cols-6 gap-4">
+          <InputNumber id="minutes_played" name="minutes_played" label="Minutes Played" min={0} max={200} variant="integer" value={0} />
+          <InputNumber id="distance_covered_km" name="distance_covered_km" label="Distance Covered (km)" min={0} max={50} variant="decimal" value={0.0} />
+          <InputNumber id="sprint_distance_km" name="sprint_distance_km" label="Sprint Distance (km)" min={0} max={50} variant="decimal" value={0.0} />
+          <InputNumber id="top_speed_kmh" name="top_speed_kmh" label="Top Speed (km/h)" min={0} max={60} variant="decimal" value={0.0} />
+          <InputNumber id="accelerations" name="accelerations" label="Accelerations" min={0} max={200} variant="integer" value={0} />
+          <InputNumber id="decelerations" name="decelerations" label="Decelerations" min={0} max={200} variant="integer" value={0} />
+          <InputNumber id="stamina_score" name="stamina_score" label="Stamina Score" min={0} max={100} variant="integer" value={0} />
+        </div>
+      </div>
+
+      <div class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm xl:col-span-2">
+        <div class="flex items-center gap-2 mb-5">
+          <span class="text-2xl">⭐</span>
+          <div>
+            <h2 class="font-semibold text-lg text-gray-900">Player Ratings & Advanced Metrics</h2>
+            <p class="text-sm text-gray-500">Aggregated match impact indices</p>
+          </div>
+        </div>
+        <div class="grid grid-cols-6 gap-4">
+          <InputNumber id="player_rating" name="player_rating" label="Player Rating" min={0} max={10} variant="decimal" value={6.0} />
+          <InputNumber id="performance_score" name="performance_score" label="Performance Score" min={0} max={100} variant="integer" value={0} />
+          <InputNumber id="offensive_contribution" name="offensive_contribution" label="Offensive Contribution" min={0} max={100} variant="integer" value={0} />
+          <InputNumber id="defensive_contribution" name="defensive_contribution" label="Defensive Contribution" min={0} max={100} variant="integer" value={0} />
+          <InputNumber id="possession_impact" name="possession_impact" label="Possession Impact" min={0} max={100} variant="integer" value={0} />
+          <InputNumber id="pressure_resistance" name="pressure_resistance" label="Pressure Resistance" min={0} max={100} variant="integer" value={0} />
+          <InputNumber id="creativity_score" name="creativity_score" label="Creativity Score" min={0} max={100} variant="integer" value={0} />
+          <InputNumber id="consistency_score" name="consistency_score" label="Consistency Score" min={0} max={100} variant="integer" value={0} />
+          <div class="col-span-2 md:col-span-1">
+            <InputNumber id="clutch_performance_score" name="clutch_performance_score" label="Clutch Performance Score" min={0} max={100} variant="integer" value={0} />
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="mt-8 flex items-center justify-end gap-4 border-t border-gray-200 pt-6">
+      <Button variant="primary" type="submit">Add Performance</Button>
+    </div>
+  </form>
+</Layout>
+
+<script>
+  const API_URL = "http://localhost:3000";
+  
+  const playerIdInput = document.getElementById("player_id") as HTMLInputElement | null;
+  const formPlayerIdInput = document.getElementById("form_player_id") as HTMLInputElement | null;
+
+  const bgColors = [
+    "bg-red-500",
+    "bg-green-500",
+    "bg-blue-500",
+    "bg-yellow-500",
+    "bg-purple-500",
+    "bg-pink-500",
+    "bg-indigo-500",
+  ];
+
+  document
+    .getElementById("fetch-player")
+    ?.addEventListener("click", async () => {
+      const playerId = playerIdInput?.value.trim();
+
+      if (!playerId) {
+        alert("Please enter a Player ID.");
+        return;
+      }
+
+      const response = await fetch(`${API_URL}/players/${playerId}`);
+
+      if (!response.ok) {
+        alert("Player not found.");
+        return;
+      }
+
+      const player = await response.json();
+      
+      // Update metadata displays matching [id].astro layout
+      document.getElementById("player-name")!.textContent = player.player_name;
+      document.getElementById("player-team")!.textContent = player.team;
+      document.getElementById("player-info")!.textContent = `#${player.jersey_number} · ${player.position}`;
+      
+      // Sync form-bound player id
+      if (formPlayerIdInput) {
+        formPlayerIdInput.value = playerId;
+      }
+
+      // Update structural elements to output dynamic HTML rendering identical to your Avatar component
+      const avatarContainer = document.getElementById("player-avatar-container");
+      if (avatarContainer && player.player_name) {
+        const name = player.player_name;
+
+        // Extract 2-letter Initials matching Avatar.astro logic
+        const initials = name
+          .trim()
+          .split(/\s+/)
+          .map((part: string) => part[0])
+          .slice(0, 2)
+          .join("")
+          .toUpperCase();
+
+        // Calculate background color index matching Avatar.astro logic
+        const colorIndex = name
+          .split("")
+          .reduce((acc: number, char: string) => acc + char.charCodeAt(0), 0) % bgColors.length;
+        const bgColor = bgColors[colorIndex];
+
+        // Replace layout DOM content mirroring the .astro visual setup for size="lg"
+        avatarContainer.innerHTML = `
+          <span class="inline-flex items-center justify-center rounded-full ${bgColor} h-24 w-24 aspect-square text-[40px] font-medium text-white text-center mr-2">
+            ${initials}
+          </span>
+        `;
+      }
+    });
+
+  // submit: gather ALL named inputs in the form, POST as JSON, then redirect
+  document
+    .getElementById("performance-form")
+    ?.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      
+      if (!formPlayerIdInput?.value) {
+        alert("Please fetch and confirm a valid player before adding.");
+        return;
+      }
+
+      const form = e.currentTarget as HTMLFormElement;
+      const formData = new FormData(form);
+      
+      const body: Record<string, any> = {};
+      formData.forEach((value, key) => {
+        if (value === "") {
+          body[key] = null;
+        } else if (!isNaN(Number(value))) {
+          body[key] = Number(value);
+        } else {
+          body[key] = value;
+        }
+      });
+
+      const response = await fetch(`${API_URL}/performances`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+
+      const data = await response.json().catch(() => ({}));
+
+      if (response.ok) {
+        alert("Performance added successfully.");
+        window.location.href = body.match_id
+          ? `/matches/${body.match_id}`
+          : "/performances";
+      } else {
+        alert(data.error || "Failed to add performance.");
+      }
+    });
+</script>

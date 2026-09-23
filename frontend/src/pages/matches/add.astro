@@ -1,0 +1,128 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import Button from "../../components/Button.astro";
+import InputNumber from "../../components/InputNumber.astro";
+import InputField from "../../components/InputField.astro";
+
+const API_URL = "http://localhost:3000";
+
+
+let errorMessage = "";
+let values: Record<string, string> = {
+  match_id: "",
+  team_a: "",
+  team_b: "",
+  stadium: "",
+  city: "",
+  tournament_stage: "",
+  match_date: "",
+  goals_a: "0",
+  goals_b: "0",
+  minutes_played: "0",
+};
+
+
+if (Astro.request.method === "POST") {
+  const formData = await Astro.request.formData();
+  values = Object.fromEntries(formData.entries()) as Record<string, string>;
+
+  const body: Record<string, string> = { ...values };
+  if (!body.match_id) delete body.match_id; // empty → backend auto-generates
+
+  const response = await fetch(`${API_URL}/matches`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+
+  const data = await response.json().catch(() => ({}));
+
+  if (response.ok) {
+    return Astro.redirect(`/matches/${data.match_id}`);
+  }
+  errorMessage = data.error || "Failed to create match.";
+}
+---
+
+<Layout title="Add Match" active="matches" container="w-full p-8">
+  <div class="flex flex-row items-center gap-4">
+    <a href="/" class="text-sm text-primary">← Back</a>
+    <h1 class="text-2xl font-bold">Add New Match</h1>
+  </div>
+
+  {errorMessage && (
+    <p class="mt-4 rounded-lg bg-red/10 px-4 py-2 text-sm text-red">
+      {errorMessage}
+    </p>
+  )}
+
+  <div class="flex flex-col gap-4 py-6">
+    <form method="post" id="match-form" class="gap-4 p-6 border border-gray-300 rounded-lg">
+      <h2 class="font-semibold gap-4">Match Details</h2>
+
+      <div class="grid grid-cols-2 gap-4 mt-4">
+        <InputField
+          name="match_id"
+          label="Match ID (leave empty to auto-generate)"
+          placeholder="M01051"
+          value={values.match_id}
+        />
+                <InputField
+          name="minutes_played"
+          label="Minutes Played"
+          type="number"
+          value={values.minutes_played}
+          required
+        />
+        <InputField
+          name="match_date"
+          label="Match Date"
+          type="date"
+          value={values.match_date}
+          required
+        />
+        <InputField name="stadium" label="Stadium" value={values.stadium} required />
+        <InputField name="city" label="City" value={values.city} required />
+        <InputField
+          name="tournament_stage"
+          label="Tournament Stage"
+          placeholder="Group Stage"
+          value={values.tournament_stage}
+          required
+        />
+      </div>
+
+      <div class="grid grid-cols-2 gap-4 mt-4">
+        <InputField name="team_a" label="Team A" value={values.team_a} />
+        <InputField name="team_b" label="Team B" value={values.team_b} />
+        <InputNumber
+          id="goals_a"
+          label="Team A Goals"
+          min={0}
+          max={200}
+          variant="integer"
+          value={Number(values.goals_a)}
+        />
+        <InputNumber
+          id="goals_b"
+          label="Team B Goals"
+          min={0}
+          max={200}
+          variant="integer"
+          value={Number(values.goals_b)}
+        />
+      </div>
+
+      <div class="flex flex-row justify-end gap-4 mt-4">
+        <Button variant="primary" type="submit">Save Match Details</Button>
+      </div>
+    </form>
+
+    <div class="p-6 border border-gray-300 rounded-lg text-sm text-text-gray">
+      <h2 class="font-semibold text-text-black">Players</h2>
+      <p class="mt-2">
+        Save the match to add players.
+      </p>
+    </div>
+  </div>
+</Layout>

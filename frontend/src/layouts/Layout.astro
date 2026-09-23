@@ -1,0 +1,46 @@
+---
+// global styles must load from the shared Layout — CSS imported inside a
+// component only ships on pages that actually use that component
+import "../styles/global.css";
+import Sidebar from '../components/SideBar.astro';
+
+interface Props {
+  title: string;
+  container?: string;
+  active?: 'matches' | 'performances' | 'rankings' ;
+}
+
+const {
+  title,
+  container = "max-w-6xl",
+  active
+} = Astro.props as Props;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Baskervville:wght@400..700&family=Inter:wght@100..900&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+
+  <body>
+    <div class="flex min-h-screen">
+      <!-- Sidebar -->
+      <Sidebar active={active} />
+
+      <!-- Main -->
+      <main class={`${container}`}>
+        <slot />
+      </main>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,146 @@
+---
+export interface Props {
+  page: number;
+  totalPages: number;
+  limit: number;
+  search: string;
+  sortBy: string;
+  sortOrder: string;
+}
+
+const { page, totalPages, limit, search, sortBy, sortOrder } = Astro.props;
+
+// the path of whatever page is rendering this component
+// (/, /performances, ...) — never hardcode it, or every page
+// using this component navigates back to /
+const basePath = Astro.url.pathname;
+
+function link(targetPage: number) {
+  const params = new URLSearchParams({
+    page: String(targetPage),
+    limit: String(limit),
+    search,
+    sortBy,
+    sortOrder,
+  });
+
+  return `${basePath}?${params.toString()}`;
+}
+
+const buttonClass =
+  "rounded-lg border border-text-gray-50 px-3 py-1.5 text-sm font-medium transition-colors";
+
+const pageNumbers: (number | string)[] = [];
+
+for (let i = 1; i <= totalPages; i++) {
+  if (
+    i === 1 ||
+    i === totalPages ||
+    (i >= page - 1 && i <= page + 1)
+  ) {
+    pageNumbers.push(i);
+  } else if (pageNumbers.at(-1) !== "...") {
+    pageNumbers.push("...");
+  }
+}
+---
+
+<div class="mt-6 flex items-center justify-between border-t border-text-gray-50 pt-4">
+
+  <!-- Left -->
+  <div class="hidden sm:block">
+    <!-- a <form> is not valid inside <p>, so this wrapper is a div -->
+    <div class="flex items-center gap-4 text-sm text-text-gray">
+
+      <!-- this.form.submit() only works if the select is INSIDE a <form>;
+           page is deliberately NOT a hidden input so changing the limit
+           jumps back to page 1 -->
+      <form method="get" action={basePath} class="inline">
+        <label class="flex items-center gap-2">
+          Show
+
+          <select
+            name="limit"
+            onchange="this.form.submit()"
+            class="rounded-lg border border-text-gray-50 px-2 py-2"
+          >
+            {[10, 25, 50, 100].map((n) => (
+              <option value={n} selected={n === limit}>
+                {n}
+              </option>
+            ))}
+          </select>
+
+          entries
+        </label>
+        <input type="hidden" name="search" value={search} />
+        <input type="hidden" name="sortBy" value={sortBy} />
+        <input type="hidden" name="sortOrder" value={sortOrder} />
+      </form>
+
+      <span>
+        Showing page
+        <span class="font-medium text-text-black"> {page} </span>
+        of
+        <span class="font-medium text-text-black"> {totalPages} </span>
+      </span>
+
+    </div>
+  </div>
+
+  <!-- Right -->
+  <nav class="flex items-center gap-1">
+
+    {page > 1 ? (
+      <a
+        href={link(page - 1)}
+        class={`${buttonClass} text-primary hover:bg-primary-10`}
+      >
+        ← Prev
+      </a>
+    ) : (
+      <span
+        class={`${buttonClass} cursor-not-allowed bg-gray-50 text-text-gray`}
+      >
+        ← Prev
+      </span>
+    )}
+
+    {pageNumbers.map((num) =>
+      num === "..." ? (
+        <span class="px-2 py-1.5 text-sm font-medium text-text-gray">
+          ...
+        </span>
+      ) : num === page ? (
+        <span
+          class="rounded-lg bg-primary px-3 py-1.5 text-sm font-semibold text-w-100"
+        >
+          {num}
+        </span>
+      ) : (
+        <a
+          href={link(num)}
+          class="rounded-lg border border-transparent px-3 py-1.5 text-sm font-medium text-text-gray transition-all hover:border-text-gray-50 hover:bg-primary-10 hover:text-primary"
+        >
+          {num}
+        </a>
+      )
+    )}
+
+    {page < totalPages ? (
+      <a
+        href={link(page + 1)}
+        class={`${buttonClass} text-primary hover:bg-primary-10`}
+      >
+        Next →
+      </a>
+    ) : (
+      <span
+        class={`${buttonClass} cursor-not-allowed bg-gray-50 text-text-gray`}
+      >
+        Next →
+      </span>
+    )}
+
+  </nav>
+</div>

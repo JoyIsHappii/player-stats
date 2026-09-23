@@ -1,0 +1,29 @@
+---
+import Button from "./Button.astro";
+
+
+const params = Astro.url.searchParams;
+const search = params.get("search") || "";
+const limit = params.get("limit") || "10";
+const sortBy = params.get("sortBy") || "id";
+const sortOrder = params.get("sortOrder") || "asc";
+---
+
+<form method="get" action={Astro.url.pathname} class="flex items-center gap-2">
+  <input
+    type="text"
+    name="search"
+    placeholder="Search…"
+    value={search}
+    class="rounded-lg border border-text-gray-50 px-3 py-2"
+  />
+  <input type="hidden" name="limit" value={limit} />
+  <input type="hidden" name="sortBy" value={sortBy} />
+  <input type="hidden" name="sortOrder" value={sortOrder} />
+  <Button
+    type="submit"
+    variant="primary"
+  >
+    Search
+    </Button>
+</form>

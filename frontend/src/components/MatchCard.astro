@@ -1,0 +1,153 @@
+---
+import Button from "./Button.astro";
+
+interface Props {
+  teamA: string;
+  teamB: string;
+  score?: string;
+  matchTime: string;
+  stadium: string;
+  city: string;
+  tournamentStage?: string;
+  matchId: string;
+}
+
+const {
+  teamA,
+  teamB,
+  score,
+  matchTime,
+  stadium,
+  city,
+  tournamentStage,
+  matchId,
+} = Astro.props as Props;
+
+// Flag emoji dictionary covering all 48 participating World Cup 2026 countries
+const countryFlags: Record<string, string> = {
+  Algeria: "🇩🇿",
+  Argentina: "🇦🇷",
+  Australia: "🇦🇺",
+  Austria: "🇦🇹",
+  Belgium: "🇧🇪",
+  Brazil: "🇧🇷",
+  Cameroon: "🇨🇲",
+  Canada: "🇨🇦",
+  Chile: "🇨🇱",
+  Colombia: "🇨🇴",
+  "Costa Rica": "🇨🇷",
+  Croatia: "🇭🇷",
+  Denmark: "🇩🇰",
+  Ecuador: "🇪🇨",
+  Egypt: "🇪🇬",
+  England: "🏴󠁧󠁢󠁥󠁮󠁧󠁿",
+  France: "🇫🇷",
+  Germany: "🇩🇪",
+  Ghana: "🇬🇭",
+  Iran: "🇮🇷",
+  Iraq: "🇮🇶",
+  Italy: "🇮🇹",
+  Jamaica: "🇯🇲",
+  Japan: "🇯🇵",
+  Mexico: "🇲🇽",
+  Morocco: "🇲🇦",
+  Netherlands: "🇳🇱",
+  Nigeria: "🇳🇬",
+  Panama: "🇵🇦",
+  Peru: "🇵🇪",
+  Poland: "🇵🇱",
+  Portugal: "🇵🇹",
+  Qatar: "🇶🇦",
+  "Saudi Arabia": "🇸🇦",
+  Scotland: "🏴󠁧󠁢󠁳󠁣󠁴󠁿",
+  Senegal: "🇸🇳",
+  Serbia: "🇷🇸",
+  "South Africa": "🇿🇦",
+  "South Korea": "🇰🇷",
+  Spain: "🇪🇸",
+  Sweden: "🇸🇪",
+  Switzerland: "🇨🇭",
+  Tunisia: "🇹🇳",
+  Turkey: "🇹🇷",
+  Ukraine: "🇺🇦",
+  "United States": "🇺🇸",
+  Uruguay: "🇺🇾",
+  Uzbekistan: "🇺🇿",
+};
+
+// Helper function to return flag or a fallback flag
+const getFlag = (team: string) => countryFlags[team] || "🏳️";
+
+const teamAFlag = getFlag(teamA);
+const teamBFlag = getFlag(teamB);
+---
+
+<div
+  class="bg-bg/90 backdrop-blur-sm rounded-3xl shadow-md p-6 border border-gray-100 w-full max-w-4xl mx-auto transition-all hover:shadow-lg"
+>
+  <div class="flex flex-row items-center justify-between gap-8 w-full">
+    
+    <div class="flex flex-row items-center justify-center gap-6 flex-1 w-full max-w-lg">
+      
+      <div class="flex flex-col items-center gap-2 flex-1 min-w-[80px]">
+        <div class="text-6xl drop-shadow-sm select-none" aria-hidden="true">
+          {teamAFlag}
+        </div>
+        <span class="font-bold text-text-black text-lg text-center leading-tight">
+          {teamA}
+        </span>
+      </div>
+
+      <div class="flex items-center justify-center px-4">
+        <span class="text-5xl font-black text-primary-60">
+          {score ?? "VS"}
+        </span>
+      </div>
+
+      <div class="flex flex-col items-center gap-2 flex-1 min-w-[80px]">
+        <div class="text-6xl drop-shadow-sm select-none" aria-hidden="true">
+          {teamBFlag}
+        </div>
+        <span class="font-bold text-text-black text-lg text-center leading-tight">
+          {teamB}
+        </span>
+      </div>
+      
+    </div>
+
+    <div class="h-12 w-[1px] bg-gray-200" aria-hidden="true"></div>
+
+    <div class="flex flex-row items-center justify-between gap-8 shrink-0">
+      
+      <div class="flex flex-col items-start gap-1 text-left min-w-[160px]">
+        {tournamentStage && (
+          <span class="text-xs font-bold tracking-wider uppercase text-primary-60">
+            {tournamentStage}
+          </span>
+        )}
+        {stadium && city && (
+          <span class="text-sm font-medium text-text-gray max-w-[200px] truncate" title={`${stadium}, ${city}`}>
+            📍 {stadium}, {city}
+          </span>
+        )}
+        {matchTime && (
+          <span class="text-sm font-semibold text-text-black">
+            🕒 {matchTime}
+          </span>
+        )}
+      </div>
+
+      <div class="w-auto">
+        <Button
+          variant="primary"
+          href={`/matches/${matchId}`}
+          class="w-auto px-6 font-semibold whitespace-nowrap flex items-center justify-center"
+        >
+          View Match Details
+        </Button>
+      </div>
+
+    </div>
+
+  </div>
+</div>

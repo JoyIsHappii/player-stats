@@ -1,0 +1,55 @@
+---
+interface Props {
+  name?: string;
+  image?: string;
+  size?: "sm" | "md" | "lg";
+  class?: string;
+}
+
+const {
+  name = "⚽",
+  size = "sm",
+  class: className = "",
+} = Astro.props as Props;
+
+let initials = "⚽";
+
+if (name !== "Anonymous") {
+  initials = name
+    .trim()
+    .split(/\s+/)
+    .map((part) => part[0])
+    .slice(0, 2)
+    .join("")
+    .toUpperCase();
+}
+
+const bgColors = [
+  "bg-red-500",
+  "bg-green-500",
+  "bg-blue-500",
+  "bg-yellow-500",
+  "bg-purple-500",
+  "bg-pink-500",
+  "bg-indigo-500",
+];
+
+const colorIndex =
+  name
+    .split("")
+    .reduce((acc, char) => acc + char.charCodeAt(0), 0) % bgColors.length;
+
+const bgColor = bgColors[colorIndex];
+
+const sizeClasses = {
+  sm: "h-8 w-8 aspect-square text-xs font-medium text-white text-center",
+  md: "h-10 w-10 aspect-square text-sm font-medium text-white text-center",
+  lg: "h-24 w-24 aspect-square text-[40px] font-medium text-white text-center",
+};
+---
+
+<span
+  class={`inline-flex items-center justify-center rounded-full ${bgColor} ${sizeClasses[size]} ${className}`}
+>
+  {initials}
+</span>
