@@ -5,7 +5,6 @@ import Button from "../components/Button.astro";
 import Pagination from "../components/Pagination.astro";
 import MatchCard from "../components/MatchCard.astro";
 
-
 type MatchRow = {
   match_id: string;
   match_date: string;
@@ -65,7 +64,6 @@ matches = matches.map((match) => {
     <h1 class="text-2xl font-bold">Matches</h1>
     <SearchField />
     <Button variant="primary" href="/matches/add">+ Add Match</Button>
-
   </div>
 
   <p class="mt-2 text-sm text-text-gray">
@@ -83,20 +81,42 @@ matches = matches.map((match) => {
   />
 
   <div class="mt-4 grid gap-4">
-    {matches.map((match) => (
-      <MatchCard
-        teamA={match.team_a ?? "TBD"}
-        teamB={match.team_b ?? "TBD"}
-        score={match.goals_a != null ? `${match.goals_a} - ${match.goals_b}` : undefined}
-        stadium={match.stadium}
-        city={match.city}
-        tournamentStage={match.tournament_stage}
-        matchTime={match.match_date}
-        matchId={match.match_id}
-      />
-    ))}
-    {matches.length === 0 && (
-      <p class="text-text-gray">No matches found.</p>
-    )}
+    {
+      matches.map((match) => (
+        <MatchCard
+          teamA={match.team_a ?? "TBD"}
+          teamB={match.team_b ?? "TBD"}
+          score={
+            match.goals_a != null
+              ? `${match.goals_a} - ${match.goals_b}`
+              : undefined
+          }
+          stadium={match.stadium}
+          city={match.city}
+          tournamentStage={match.tournament_stage}
+          matchTime={match.match_date}
+          matchId={match.match_id}
+        />
+      ))
+    }
+    {
+      matches.length === 0 && (
+        <div class="mx-auto flex max-w-xl flex-col items-center rounded-2xl border border-primary-20 bg-primary-10/40 px-6 py-10 text-center">
+          <div class="mb-5 text-6xl animate-[spin_3s_linear_infinite]">⚽</div>
+
+          <h3 class="mb-2 text-2xl font-semibold text-primary-60">
+            Loading match data ...
+          </h3>
+          <div class="flex flex-col">
+            <p class="max-w-md text-sm leading-6 text-text-gray">
+              The backend may need a moment to wake up.
+            </p>
+            <p class="max-w-md text-sm leading-6 text-text-gray">
+              Please wait a few seconds,then refresh the page.
+            </p>
+          </div>
+        </div>
+      )
+    }
   </div>
 </Layout>
