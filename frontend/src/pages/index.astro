@@ -28,6 +28,7 @@ const sortOrder = Astro.url.searchParams.get("sortOrder") || "desc";
 let matches: MatchRow[] = [];
 let totalPages = 1;
 let totalCount = 0;
+let backendError = false;
 
 try {
   const apiUrl = `${API_URL}/matches?page=${page}&limit=${limit}&search=${encodeURIComponent(search)}`;
@@ -39,11 +40,14 @@ try {
     matches = data.matches ?? [];
     totalCount = data.total ?? 0;
     totalPages = Math.max(1, Math.ceil(totalCount / limit));
+  } else {
+    backendError = true;
   }
 } catch {
   matches = [];
   totalPages = 1;
   totalCount = 0;
+  backendError = true;
 }
 
 // Match date formatting
@@ -102,19 +106,27 @@ matches = matches.map((match) => {
     {
       matches.length === 0 && (
         <div class="mx-auto flex max-w-xl flex-col items-center rounded-2xl border border-primary-20 bg-primary-10/40 px-6 py-10 text-center">
-          <div class="mb-5 text-6xl animate-[spin_3s_linear_infinite]">⚽</div>
-
-          <h3 class="mb-2 text-2xl font-semibold text-primary-60">
-            Loading match data ...
-          </h3>
-          <div class="flex flex-col">
-            <p class="max-w-md text-sm leading-6 text-text-gray">
-              The backend may need a moment to wake up.
-            </p>
-            <p class="max-w-md text-sm leading-6 text-text-gray">
-              Please wait a few seconds,then refresh the page.
-            </p>
-          </div>
+          {backendError ? (
+            <>
+              <div class="mb-5 text-6xl animate-[spin_3s_linear_infinite]">⚽</div>
+              <h3 class="mb-2 text-2xl font-semibold text-primary-60">
+                Loading match data ...
+              </h3>
+              <p class="max-w-md text-sm leading-6 text-text-gray">
+                The backend may need a moment to wake up. Please wait a few seconds, then refresh the page.
+              </p>
+            </>
+          ) : (
+            <>
+              <div class="mb-4 text-5xl" aria-hidden="true">🔎</div>
+              <h3 class="mb-2 text-2xl font-semibold text-primary-60">
+                No matches found
+              </h3>
+              <p class="max-w-md text-sm leading-6 text-text-gray">
+                {search ? `No matches found for "${search}".` : "There are no matches to display yet."}
+              </p>
+            </>
+          )}
         </div>
       )
     }
