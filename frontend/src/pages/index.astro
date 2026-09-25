@@ -105,9 +105,9 @@ matches = matches.map((match) => {
     }
     {
       matches.length === 0 && (
-        <div class="mx-auto flex max-w-xl flex-col items-center rounded-2xl border border-primary-20 bg-primary-10/40 px-6 py-10 text-center">
+        <div>
           {backendError ? (
-            <>
+            <div class="mx-auto flex max-w-xl flex-col items-center rounded-2xl border border-primary-20 bg-primary-10/40 px-6 py-10 text-center">
               <div class="mb-5 text-6xl animate-[spin_3s_linear_infinite]">⚽</div>
               <h3 class="mb-2 text-2xl font-semibold text-primary-60">
                 Loading match data ...
@@ -115,15 +115,11 @@ matches = matches.map((match) => {
               <p class="max-w-md text-sm leading-6 text-text-gray">
                 The backend may need a moment to wake up. Please wait a few seconds, then refresh the page.
               </p>
-            </>
+            </div>
           ) : (
             <>
-              <div class="mb-4 text-5xl" aria-hidden="true">🔎</div>
-              <h3 class="mb-2 text-2xl font-semibold text-primary-60">
+              <p class=" text-text-gray">
                 No matches found
-              </h3>
-              <p class="max-w-md text-sm leading-6 text-text-gray">
-                {search ? `No matches found for "${search}".` : "There are no matches to display yet."}
               </p>
             </>
           )}
